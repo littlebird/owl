@@ -11,9 +11,9 @@ Scry into the nature of the network.
   (:require [owl.betweenness :as owl]))
 
 (owl/network-betweenness
- {1 '(2 5) 2 '(3 5) 3 '(4) 4 '() 5 '(4)})
+ {:a '(:b :e) :b '(:c :e) :c '(:d) :d '() :e '(:d)})
 
----> {2 1, 5 3/2, 3 1/2, 4 0}
+---> {:b 1, :e 3/2, :c 1/2, :d 0}
 ```
 
 ## License
