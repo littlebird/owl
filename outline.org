@@ -1,0 +1,60 @@
+* application state, system/component pattern
+* data model (graph)
+** identities from different sources
+** semantic terms
+** networks unite identities with terms (subgraphs)
+** ingest graph data
+*** scanning for graph data, building network of identities and terms
+*** importing data from other places and integrating it into larger graph
+*** keeping track of the date/time that each piece of data was found or added
+** query graph mass
+*** identities
+*** terms
+*** networks
+*** geography
+* input into pipeline
+** various sources
+*** term (seeds)
+**** replicate base crawl
+***** list harvesting
+***** user harvesting
+*** single handle
+*** twitter list
+*** hashtag
+*** geography
+*** arbitrary csv
+* core graph analysis
+** run analysis
+*** betweenness
+*** modularity
+* views
+** filtering
+*** criteria
+**** numbers
+***** insider score
+***** listening score
+***** total followers
+***** followers inside the network
+***** age of account
+***** community
+**** properties
+***** bio keyword
+***** geography
+*** operations
+**** ratios
+**** ranges (greater than/less than)
+**** sets
+**** union
+**** intersection
+**** difference
+** list view
+** discover connections
+** geolocation
+** visualization
+** external content
+** recommendations/related
+* export
+* identity/authentication
+* creating filters and filter sets
+* monitoring change over time
+* alerts triggered by conditions on monitors
