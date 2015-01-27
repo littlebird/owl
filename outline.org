@@ -20,14 +20,22 @@
 ***** user harvesting
 *** single handle
 *** twitter list
+*** other social networks
+**** facebook
+**** linkedin
+**** instagram
 *** hashtag
 *** geography
 *** arbitrary csv
+*** integrations
+**** kapost
+*** filtering of other reports
 * core graph analysis
 ** run analysis
 *** betweenness
 *** modularity
-* views
+* views/app
+** dashboard
 ** filtering
 *** criteria
 **** numbers
@@ -40,6 +48,7 @@
 **** properties
 ***** bio keyword
 ***** geography
+***** keyword from timeline
 *** operations
 **** ratios
 **** ranges (greater than/less than)
@@ -54,7 +63,26 @@
 ** external content
 ** recommendations/related
 * export
-* identity/authentication
+* identity/authentication and authorization
+** account management
+** login flow
+** permissions/roles
+** tying to other account types (twitter/fb/linkedin...)
 * creating filters and filter sets
-* monitoring change over time
-* alerts triggered by conditions on monitors
+* monitoring
+** change over time
+** roles
+*** you
+*** competitor
+*** customer
+*** vendor
+*** prospect
+*** employees
+** events
+*** follows
+*** mentions
+*** favorites
+*** retweets
+*** quotes
+** alerts
+* hosting and scalability

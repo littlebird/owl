@@ -42,7 +42,7 @@
       (let [queue (pop queue)
             stack (conj stack found)
             neighbors (get network found)
-            [dependence queue paths visited] 
+            [dependence queue paths visited]
             (reduce
              (fn [[dependence queue paths visited] neighbor]
                (let [[dependence queue] (visit-neighbor found neighbor dependence queue)
@@ -91,3 +91,6 @@
    (fn [betweenness node]
      (node-betweenness node network betweenness))
    {} (keys network)))
+
+
+
