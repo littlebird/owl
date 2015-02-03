@@ -70,9 +70,9 @@
                              distant-path (get paths distant 0)
                              visit-distance (get distance visit 0)
                              visit-path (get paths visit 0)
-                             ratio (/ visit-path distant-path)
+                             ratio (double (/ visit-path distant-path))
                              scale (* ratio (inc distant-distance))]
-                         (+ (or previous 0) (+ scale visit-distance))))))
+                         (+ scale visit-distance)))))
                   distance (get visited distant))
                  
                  betweenness
@@ -91,6 +91,3 @@
    (fn [betweenness node]
      (node-betweenness node network betweenness))
    {} (keys network)))
-
-
-
