@@ -1,4 +1,5 @@
-(ns owl.betweenness)
+(ns owl.betweenness
+  (:import (owl.algorithm Betweenness)))
 
 (defn empty-queue
   []
@@ -85,9 +86,14 @@
          [betweenness {}] stack)]
     betweenness))
 
-(defn network-betweenness
+(defn pure-network-betweenness
   [network]
   (reduce
    (fn [betweenness node]
      (node-betweenness node network betweenness))
    {} (keys network)))
+
+(defn network-betweenness
+  [network]
+  (let [between (Betweenness. network)]
+    (.calculate between)))
