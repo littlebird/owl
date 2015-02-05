@@ -48,7 +48,7 @@ public class Betweenness {
             dependence.put(neighbor, ((int) this.get(dependence, visit, -1)) + 1);
           }
 
-          if (dependence.get(neighbor) == ((int) this.get(dependence, visit, -1)) + 1) {
+          if ((int) dependence.get(neighbor) == ((int) this.get(dependence, visit, -1)) + 1) {
             shortest.put(neighbor, ((int) this.get(shortest, neighbor, 0)) + ((int) this.get(shortest, visit, 0)));
             if (!paths.containsKey(neighbor)) {
               paths.put(neighbor, new LinkedList());

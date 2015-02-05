@@ -96,4 +96,4 @@
 (defn network-betweenness
   [network]
   (let [between (Betweenness. network)]
-    (.calculate between)))
+    (into {} (.calculate between))))
