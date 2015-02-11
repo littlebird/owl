@@ -12,6 +12,12 @@
 *** terms
 *** networks
 *** geography
+* identity/authentication and authorization
+** account management
+** login flow
+*** tying to other account types (twitter/fb/linkedin...)
+**** credentials need to be reauthorized
+** permissions/roles
 * input into pipeline
 ** various sources
 *** term (seeds)
@@ -29,6 +35,7 @@
 *** arbitrary csv
 *** integrations
 **** kapost
+**** radian 8
 *** filtering of other reports
 * core graph analysis
 ** run analysis
@@ -63,11 +70,6 @@
 ** external content
 ** recommendations/related
 * export
-* identity/authentication and authorization
-** account management
-** login flow
-** permissions/roles
-** tying to other account types (twitter/fb/linkedin...)
 * creating filters and filter sets
 * monitoring
 ** change over time
@@ -85,4 +87,5 @@
 *** retweets
 *** quotes
 ** alerts
+* measurement
 * hosting and scalability

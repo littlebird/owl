@@ -35,3 +35,4 @@
         d (* out-community total)
         e (* out-module total)]
     (- (- a (* b b)) (- c (* d d) (* e e)))))
+
