@@ -31,6 +31,7 @@
 (defn prepare-network
   [network]
   (let [total (network/total-connections network)
+        pared (into {} (remove #(zero? (+ (-> % last :in count) (-> % last :out count))) network))
         commune (reduce
                  (fn [network id]
                    (-> network
@@ -38,11 +39,11 @@
                        (assoc-in [id :total-weights]
                                  (+ (sum-weights (get-in network [id :in]))
                                     (sum-weights (get-in network [id :out]))))))
-                 network (keys network))]
+                 pared (keys pared))]
     {:network commune
      :total total
      :ratio (/ 1.0 total)
-     :communities (into {} (map (fn [id] [id (set [id])]) (keys network)))
+     :communities (into {} (map (fn [id] [id (set [id])]) (keys commune)))
      :impact (network/map-vals node-impact commune)}))
 
 (defn weights-within
@@ -135,41 +136,44 @@
 (defn community-for
   [{:keys [network communities] :as graph} id]
   (let [node (get network id)
+        current-id (:community node)
         connections (shuffle (node-connections node))]
-    (if-let [connection 
-             (first
-              (drop-while
-               (fn [connection]
-                 (let [community-id (get-in network [connection :community])
-                       community (get communities community-id)
-                       modularity (modularity-difference graph id community)]
-                   (< modularity 0)))
-               connections))]
-      (get-in network [connection :community]))))
-
-(defn remove-from-community
-  [communities id current]
-  (dissoc communities current))
+    (if (= 1 (count (get communities current-id)))
+      (if-let [connection 
+               (first
+                (drop-while
+                 (fn [connection]
+                   (let [community-id (get-in network [connection :community])]
+                     (if (not= community-id current-id)
+                       (let [community (get communities community-id)
+                             modularity (modularity-difference graph id community)]
+                         (< modularity 0)))))
+                 connections))]
+        (get-in network [connection :community])))))
 
 (defn join-community
   [graph id community]
-  (p :join-community
-     (let [current-id (get-in graph [:network id :community])
-           current-community (get-in graph [:communities current-id])]
-       (if (not= current-id community)
-         (-> graph
-             (assoc-in [:network id :community] community)
-             (update-in [:communities] #(remove-from-community % id current-id))
-             (update-in [:communities community] #(set/union % current-community)))
-         graph))))
+  (let [current-id (get-in graph [:network id :community])
+        current-community (get-in graph [:communities current-id])
+        new-community (get-in graph [:communities community])]
+    ;; (println id ":" current-id "-->" community)
+    ;; (println current-community "-->" new-community)
+    (if (= current-id community)
+      graph
+      (-> (reduce
+           (fn [graph current]
+             (assoc-in graph [:network current :community] community))
+           graph current-community)
+          (update-in [:communities] #(dissoc % current-id))
+          (update-in [:communities community] #(set/union % current-community))))))
 
-(defn merge-communities
-  [graph]
-  (reduce
-   (fn [graph id]
-     (let [community (find-community graph id)]
-       (join-community graph id community)))
-   graph (-> graph :network keys)))
+;; (defn merge-communities
+;;   [graph]
+;;   (reduce
+;;    (fn [graph id]
+;;      (let [community (find-community graph id)]
+;;        (join-community graph id community)))
+;;    graph (-> graph :network keys)))
 
 (defn merge-communities
   [graph]
