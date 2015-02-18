@@ -215,8 +215,18 @@
      :community id
      :total-weights (+ (sum-weights in) (sum-weights out))}))
 
+(defn pool-communities
+  [communities full-communities]
+  (if full-communities
+    (network/map-map
+     (fn [id above]
+       (let [below (map (partial get full-communities) above)]
+         [id (apply set/union below)]))
+     communities)
+    communities))
+
 (defn ascend-level
-  [{:keys [network total ratio communities] :as graph}]
+  [{:keys [network total ratio communities full-communities original] :as graph}]
   (let [commune
         (reduce
          (fn [above [id community]]
@@ -229,7 +239,9 @@
      :ratio (/ 1.0 total)
      :communities (initial-communities commune)
      :impact (network/map-vals node-impact commune)
-     :sublevel graph}))
+     :original (or original network)
+     :full-communities (pool-communities communities full-communities)
+     :sublevel (dissoc graph :original)}))
 
 (defn agglomerate
   [graph]

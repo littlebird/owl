@@ -50,10 +50,6 @@
        (empty?
         (set/difference
          (-> node :out keys set)
-         (-> merged :communities keys set))))
-      (println (str (:network merged)))
-      (println (str (:communities merged)))
-      (println (str community-id) (str community))
-      (println (str node)))))
+         (-> merged :communities keys set)))))))
 
 
