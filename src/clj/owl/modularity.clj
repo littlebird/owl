@@ -40,15 +40,16 @@
 
 (defn prepare-network
   [network]
-  (let [pared (into {} (remove #(zero? (+ (-> % last :in count) (-> % last :out count))) network))
-        commune (reduce
-                 (fn [network id]
-                   (-> network
-                       (assoc-in [id :community] id)
-                       (assoc-in [id :total-weights]
-                                 (+ (sum-weights (get-in network [id :in]))
-                                    (sum-weights (get-in network [id :out]))))))
-                 pared (keys pared))
+  (let [pared (network/remove-isolates network)
+        commune
+        (reduce
+         (fn [network id]
+           (-> network
+               (assoc-in [id :community] id)
+               (assoc-in [id :total-weights]
+                         (+ (sum-weights (get-in network [id :in]))
+                            (sum-weights (get-in network [id :out]))))))
+         pared (keys pared))
         total (network/total-weights commune)]
     {:network commune
      :total total

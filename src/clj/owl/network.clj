@@ -22,6 +22,17 @@
   [network]
   (reduce + 0 (map (comp count last) network)))
 
+(defn remove-isolates
+  [network]
+  (into
+   {}
+   (remove
+    (fn [[id node]]
+      (zero?
+       (+ (-> node :in count)
+          (-> node :out count))))
+    network)))
+
 (defn pare-network
   [network]
   (let [within (set (keys network))]
