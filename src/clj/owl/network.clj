@@ -54,3 +54,7 @@
           all out)))
      {} network)))
 
+(defn total-weights
+  [network]
+  (reduce + 0 (mapcat (comp vals :in) (vals network))))
+

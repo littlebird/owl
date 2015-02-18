@@ -19,7 +19,8 @@
   (set (keys (get node direction))))
 
 (defn sum-weights
-  ([weights] (sum-weights weights #{}))
+  ([weights]
+     (reduce + 0 (map last weights)))
   ([weights ignoring?]
      (reduce
       (fn [sum [id weight]]
@@ -28,10 +29,18 @@
           (+ sum weight)))
       0 weights)))
 
+(defn initial-communities
+  [network]
+  (into
+   {}
+   (map
+    (fn [id]
+      [id (set [id])])
+    (keys network))))
+
 (defn prepare-network
   [network]
-  (let [total (network/total-connections network)
-        pared (into {} (remove #(zero? (+ (-> % last :in count) (-> % last :out count))) network))
+  (let [pared (into {} (remove #(zero? (+ (-> % last :in count) (-> % last :out count))) network))
         commune (reduce
                  (fn [network id]
                    (-> network
@@ -39,11 +48,12 @@
                        (assoc-in [id :total-weights]
                                  (+ (sum-weights (get-in network [id :in]))
                                     (sum-weights (get-in network [id :out]))))))
-                 pared (keys pared))]
+                 pared (keys pared))
+        total (network/total-weights commune)]
     {:network commune
      :total total
      :ratio (/ 1.0 total)
-     :communities (into {} (map (fn [id] [id (set [id])]) (keys commune)))
+     :communities (initial-communities commune)
      :impact (network/map-vals node-impact commune)}))
 
 (defn weights-within
@@ -87,8 +97,7 @@
            out-community (- total-community in-community)
            relation (p :relation (node-relation network community id))
            node-impact (get impact id)
-           ;; ratio (* 0.5 ratio)
-           ratio 0.5
+           ratio (* 0.5 ratio)
 
            a (* (+ in-community relation) ratio)
            b (* (+ out-community node-impact) ratio)
@@ -156,8 +165,6 @@
   (let [current-id (get-in graph [:network id :community])
         current-community (get-in graph [:communities current-id])
         new-community (get-in graph [:communities community])]
-    ;; (println id ":" current-id "-->" community)
-    ;; (println current-community "-->" new-community)
     (if (= current-id community)
       graph
       (-> (reduce
@@ -167,14 +174,6 @@
           (update-in [:communities] #(dissoc % current-id))
           (update-in [:communities community] #(set/union % current-community))))))
 
-;; (defn merge-communities
-;;   [graph]
-;;   (reduce
-;;    (fn [graph id]
-;;      (let [community (find-community graph id)]
-;;        (join-community graph id community)))
-;;    graph (-> graph :network keys)))
-
 (defn merge-communities
   [graph]
   (reduce
@@ -183,3 +182,72 @@
        (join-community graph id community)
        graph))
    graph (-> graph :network keys)))
+
+(defn flow-upward
+  [network to community]
+  (reduce
+   (fn [node connections]
+     (reduce
+      (fn [node [connection weight]]
+        (if (community connection)
+          node
+          (let [upward (get-in network [connection :community])]
+            (update-in node [upward] #(+ (or % 0) weight)))))
+      node connections))
+   {} to))
+
+(defn merge-connections
+  [network community direction]
+  (let [connections
+        (map
+         (fn [id]
+           (get-in network [id direction]))
+         community)
+        merged (flow-upward network connections community)]
+    merged))
+
+(defn merge-nodes
+  [network id community]
+  (let [in (merge-connections network community :in)
+        out (merge-connections network community :out)]
+    {:in in
+     :out out
+     :community id
+     :total-weights (+ (sum-weights in) (sum-weights out))}))
+
+(defn ascend-level
+  [{:keys [network total ratio communities] :as graph}]
+  (let [commune
+        (reduce
+         (fn [above [id community]]
+           (let [aggregate (merge-nodes network id community)]
+             (assoc above id aggregate)))
+         {} communities)
+        total (network/total-weights commune)]
+    {:network commune
+     :total total
+     :ratio (/ 1.0 total)
+     :communities (initial-communities commune)
+     :impact (network/map-vals node-impact commune)
+     :sublevel graph}))
+
+(defn agglomerate
+  [graph]
+  (iterate
+   (comp merge-communities ascend-level)
+   (merge-communities graph)))
+
+(defn unified?
+  [graph]
+  (or
+   (= 1 (-> graph :communities count))
+   (every?
+    (partial = 1)
+    (map count (-> graph :communities vals)))))
+
+(defn seek-unity
+  [network]
+  (let [graph (prepare-network network)
+        glom (agglomerate graph)
+        quest (drop-while (comp not unified?) glom)]
+    (first quest)))
