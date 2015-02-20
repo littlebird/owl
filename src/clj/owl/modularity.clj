@@ -242,7 +242,7 @@
      :impact (network/map-vals node-impact commune)
      :original (or original network)
      :full-communities (pool-communities communities full-communities)
-     :sublevel (dissoc graph :original)}))
+     :sublevel (dissoc graph :original :total :ratio :impact)}))
 
 (defn agglomerate
   [graph]
@@ -258,9 +258,25 @@
     (partial = 1)
     (map count (-> graph :communities vals)))))
 
+(defn apply-communities
+  [communities network]
+  (let [community-map (into {} (map-indexed (fn [index id] [id index]) (keys communities)))]
+    (reduce
+     (fn [network [community-id community]]
+       (reduce
+        (fn [network id]
+          (assoc-in network [id :community] (get community-map community-id)))
+        network community))
+     network communities)))
+
 (defn seek-unity
   [network]
   (let [graph (prepare-network network)
         glom (agglomerate graph)
-        quest (drop-while (comp not unified?) glom)]
-    (first quest)))
+        quest (drop-while (comp not unified?) glom)
+        unity (first quest)]
+    (update-in
+     unity [:original]
+     (partial apply-communities (:full-communities unity)))))
+
+

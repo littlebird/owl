@@ -69,3 +69,13 @@
   [network]
   (reduce + 0 (mapcat (comp vals :in) (vals network))))
 
+(defn remove-node-weights
+  [node]
+  (-> node
+      (update-in [:in] keys)
+      (update-in [:out] keys)
+      (dissoc :total-weights)))
+
+(defn remove-network-weights
+  [network]
+  (map-vals remove-node-weights network))
