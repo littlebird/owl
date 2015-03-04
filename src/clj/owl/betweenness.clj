@@ -11,71 +11,76 @@
     (or (nil? entry) (< entry 0))))
 
 (defn visit-neighbor
-  [found neighbor dependence queue]
-  (if (undiscovered? neighbor dependence)
-    (let [preexisting (get dependence found)
-          dependence (assoc dependence neighbor (inc preexisting))
-          queue (conj queue neighbor)]
-      [dependence queue])
-    [dependence queue]))
+  [state found neighbor]
+  (if (undiscovered? neighbor (:dependence state))
+    (let [preexisting (get-in state [:dependence found])]
+      (-> state
+          (assoc-in [:dependence neighbor] (inc preexisting))
+          (update-in [:queue] #(conj % neighbor))))
+    state))
 
 (defn shortest-path?
   [found neighbor dependence]
-  (= (get dependence neighbor) (inc (get dependence found))))
+  (= (get dependence neighbor)
+     (inc (get dependence found))))
 
 (defn find-shortest
-  [found neighbor dependence paths visited]
-  (if (shortest-path? found neighbor dependence)
-    (let [found-path (get paths found)
-          paths (update-in paths [neighbor] #(+ (or % 0) found-path))
-          visited (update-in visited [neighbor] #(conj % found))]
-      [paths visited])
-    [paths visited]))
+  [state found neighbor]
+  (if (shortest-path? found neighbor (:dependence state))
+    (let [found-path (get-in state [:paths found])]
+      (-> state
+          (update-in [:paths neighbor] #(+ (or % 0) found-path))
+          (update-in [:visited neighbor] #(conj % found))))
+    state))
+
+(defn dependence-state
+  [node]
+  {:stack (list)
+   :dependence {node 0}
+   :queue (conj (empty-queue) node)
+   :paths {node 1}
+   :visited {}})
+
+(defn process-neighbor
+  [found state neighbor]
+  (-> state
+      (visit-neighbor found neighbor)
+      (find-shortest found neighbor)))
 
 (defn node-dependence
   [node network]
-  (loop [stack (list)
-         dependence {node 0}
-         queue (conj (empty-queue) node)
-         paths {node 1}
-         visited {}]
-    (if-let [found (first queue)]
-      (let [queue (pop queue)
-            stack (conj stack found)
+  (loop [state (dependence-state node)]
+    (if-let [found (-> state :queue first)]
+      (let [state (-> state
+                      (update-in [:queue] pop)
+                      (update-in [:stack] #(conj % found)))
             neighbors (get network found)
-            [dependence queue paths visited]
-            (reduce
-             (fn [[dependence queue paths visited] neighbor]
-               (let [[dependence queue] (visit-neighbor found neighbor dependence queue)
-                     [paths visited] (find-shortest
-                                      found neighbor dependence paths visited)]
-                 [dependence queue paths visited]))
-             [dependence queue paths visited]
-             neighbors)]
-        (recur stack dependence queue paths visited))
-      [stack dependence queue paths visited])))
+            state (reduce (partial process-neighbor found) state neighbors)]
+        (recur state))
+      state)))
+
+(defn distance-paths
+  [distance paths distant visit]
+  (let [ratio (double (/ (get paths visit 0) (get paths distant 0)))
+        scale (* ratio (inc (get distance distant 0)))]
+    (+ scale (get distance visit 0))))
+
+(defn node-distance
+  [distance paths visited distant]
+  (reduce
+   (fn [distance visit]
+     (assoc-in
+      distance [visit]
+      (distance-paths distance paths distant visit)))
+   distance (get visited distant)))
 
 (defn node-betweenness
-  [node network betweenness]
-  (let [[stack dependence queue paths visited] (node-dependence node network)
+  [network betweenness node]
+  (let [{:keys [stack paths visited]} (node-dependence node network)
         [betweenness distance]
         (reduce
          (fn [[betweenness distance] distant]
-           (let [distance
-                 (reduce
-                  (fn [distance visit]
-                    (update-in
-                     distance [visit]
-                     (fn [previous]
-                       (let [distant-distance (get distance distant 0)
-                             distant-path (get paths distant 0)
-                             visit-distance (get distance visit 0)
-                             visit-path (get paths visit 0)
-                             ratio (double (/ visit-path distant-path))
-                             scale (* ratio (inc distant-distance))]
-                         (+ scale visit-distance)))))
-                  distance (get visited distant))
-                 
+           (let [distance (node-distance distance paths visited distant)
                  betweenness
                  (if (= node distant)
                    betweenness
@@ -89,8 +94,7 @@
 (defn pure-network-betweenness
   [network]
   (reduce
-   (fn [betweenness node]
-     (node-betweenness node network betweenness))
+   (partial node-betweenness network)
    {} (keys network)))
 
 (defn network-betweenness
