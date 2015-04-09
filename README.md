@@ -2,7 +2,7 @@
 
 Scry into the nature of the network.
 
-![OWL](https://github.com/plexusengine/owl/blob/master/resources/public/img/owl.jpg)
+![OWL](https://github.com/littlebird/owl/blob/master/resources/public/img/owl.jpg)
 
 ## Usage
 

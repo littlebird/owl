@@ -79,3 +79,11 @@
 (defn remove-network-weights
   [network]
   (map-vals remove-node-weights network))
+
+(defn jaccard-similarity
+  [a b]
+  (let [a (set a)
+        b (set b)
+        union (set/union a b)
+        intersection (set/intersection a b)]
+    (float (/ (count intersection) (count union)))))

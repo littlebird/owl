@@ -258,25 +258,50 @@
     (partial = 1)
     (map count (-> graph :communities vals)))))
 
+(defn community-index
+  [communities]
+  (into
+   {}
+   (map-indexed
+    (fn [index id] [id index])
+    (keys communities))))
+
+(defn index-communities
+  [communities]
+  (let [index (community-index communities)]
+    (into
+     {}
+     (map
+      (fn [[id community]]
+        [(get index id) community])
+      communities))))
+
 (defn apply-communities
   [communities network]
-  (let [community-map (into {} (map-indexed (fn [index id] [id index]) (keys communities)))]
-    (reduce
-     (fn [network [community-id community]]
-       (reduce
-        (fn [network id]
-          (assoc-in network [id :community] (get community-map community-id)))
-        network community))
-     network communities)))
+  (reduce
+   (fn [network [community-id community]]
+     (reduce
+      (fn [network id]
+        (assoc-in network [id :community] community-id))
+      network community))
+   network communities))
+
+(defn community-map
+  [network]
+  (reduce
+   (fn [communities [node weights]]
+     (assoc communities node (:community weights)))
+   {} network))
 
 (defn seek-unity
   [network]
   (let [graph (prepare-network network)
         glom (agglomerate graph)
         quest (drop-while (comp not unified?) glom)
-        unity (first quest)]
-    (update-in
-     unity [:original]
-     (partial apply-communities (:full-communities unity)))))
-
-
+        unity (first quest)
+        top-level (index-communities (:full-communities unity))
+        unity (assoc unity :top-level-communities top-level)
+        unity (update-in
+               unity [:original]
+               (partial apply-communities top-level))]
+    (assoc unity :node-communities (community-map (:original unity)))))
