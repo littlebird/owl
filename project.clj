@@ -6,7 +6,8 @@
   :source-paths ["src/clj"]
   :java-source-paths ["src/java"]
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [com.taoensso/timbre "3.3.1"]]
+                 [com.taoensso/timbre "3.3.1"]
+                 [org.clojure/math.combinatorics "0.1.1"]]
   :plugins [[s3-wagon-private "1.1.2"]]
   :repositories [["private" {:url "s3p://littlebird-maven/releases/"
                              :creds :gpg
