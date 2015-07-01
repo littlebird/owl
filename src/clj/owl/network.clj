@@ -11,6 +11,13 @@
       (f k v))
     m)))
 
+(defn map-keys
+  [f m]
+  (map-map
+   (fn [k v]
+     [(f k) v])
+   m))
+
 (defn map-vals
   [f m]
   (map-map
