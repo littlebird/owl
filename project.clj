@@ -1,9 +1,10 @@
-(defproject aviary/owl "0.0.6"
+(defproject aviary/owl "0.0.8"
   :description "Graph analysis in Clojure"
   :url "http://github.com/littlebird/owl"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :source-paths ["src/clj"]
+  :javac-options ["-target" "1.7" "-source" "1.7"]
   :java-source-paths ["src/java"]
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [com.taoensso/timbre "3.3.1"]
