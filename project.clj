@@ -1,4 +1,4 @@
-(defproject aviary/owl "0.0.8"
+(defproject aviary/owl "0.0.9"
   :description "Graph analysis in Clojure"
   :url "http://github.com/littlebird/owl"
   :license {:name "Eclipse Public License"
