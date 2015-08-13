@@ -88,7 +88,12 @@
 
 (defn community-weight
   [network community]
-  (reduce + 0 (map (fn [id] (get-in network [id :total-weights])) community)))
+  (reduce
+   + 0
+   (map
+    (fn [id]
+      (get-in network [id :total-weights]))
+    community)))
 
 (defn modularity-difference
   [{:keys [network ratio communities impact]} id community]
@@ -123,15 +128,17 @@
   (p :find-community
      (let [node (get network id)
            connections (node-connections node)
-           potential (communities-for network connections)]
+           potential (communities-for network connections)
+           diffs (filter
+                  (comp (partial < 0) last)
+                  (map
+                   (fn [community]
+                     (let [members (get communities community)]
+                       [community (modularity-difference graph id members)]))
+                   potential))]
        (if (empty? connections)
          id
-         (first
-          (sort-by
-           (fn [community]
-             (let [members (get communities community)]
-               (modularity-difference graph id members)))
-           > potential))))))
+         (-> (sort-by last > diffs) first first)))))
 
 (defn community-for?
   [{:keys [network communities] :as graph} id]
@@ -144,22 +151,24 @@
       community-id)))
 
 (defn community-for
-  [{:keys [network communities] :as graph} id]
-  (let [node (get network id)
-        current-id (:community node)
-        connections (shuffle (node-connections node))]
-    (if (= 1 (count (get communities current-id)))
-      (if-let [connection 
-               (first
-                (drop-while
-                 (fn [connection]
-                   (let [community-id (get-in network [connection :community])]
-                     (if (not= community-id current-id)
-                       (let [community (get communities community-id)
-                             modularity (modularity-difference graph id community)]
-                         (< modularity 0)))))
-                 connections))]
-        (get-in network [connection :community])))))
+  ([graph id] (community-for graph id shuffle))
+  ([{:keys [network communities] :as graph} id prioritize]
+   (let [node (get network id)
+         current-id (:community node)
+         connections (prioritize (node-connections node))]
+     (if (= 1 (count (get communities current-id)))
+       (if-let [connection 
+                (first
+                 (drop-while
+                  (fn [connection]
+                    (let [community-id (get-in network [connection :community])]
+                      (if (= community-id current-id)
+                        true
+                        (let [community (get communities community-id)
+                              modularity (modularity-difference graph id community)]
+                          (< modularity 0)))))
+                  connections))]
+         (get-in network [connection :community]))))))
 
 (defn join-community
   [graph id community]
@@ -176,13 +185,13 @@
           (update-in [:communities community] #(set/union % current-community))))))
 
 (defn merge-communities
-  [graph]
+  [prioritize graph]
   (reduce
    (fn [graph id]
-     (if-let [community (community-for graph id)]
+     (if-let [community (find-community graph id)]
        (join-community graph id community)
        graph))
-   graph (-> graph :network keys)))
+   graph (prioritize (-> graph :network keys))))
 
 (defn flow-upward
   [network to community]
@@ -245,10 +254,10 @@
      :sublevel (dissoc graph :original :total :ratio :impact)}))
 
 (defn agglomerate
-  [graph]
+  [graph prioritize]
   (iterate
-   (comp merge-communities ascend-level)
-   (merge-communities graph)))
+   (comp (partial merge-communities prioritize) ascend-level)
+   (merge-communities prioritize graph)))
 
 (defn unified?
   [graph]
@@ -294,14 +303,25 @@
    {} network))
 
 (defn seek-unity
-  [network]
-  (let [graph (prepare-network network)
-        glom (agglomerate graph)
-        quest (drop-while (comp not unified?) glom)
-        unity (first quest)
-        top-level (index-communities (:full-communities unity))
-        unity (assoc unity :top-level-communities top-level)
-        unity (update-in
-               unity [:original]
-               (partial apply-communities top-level))]
-    (assoc unity :node-communities (community-map (:original unity)))))
+  ([network] (seek-unity network (partial sort-by identity >)))
+  ([network prioritize]
+   (let [graph (prepare-network network)
+         glom (agglomerate graph prioritize)
+         quest (drop-while (comp not unified?) glom)
+         unity (first quest)
+         top-level (index-communities (:full-communities unity))
+         unity (assoc unity :top-level-communities top-level)
+         unity (update-in
+                unity [:original]
+                (partial apply-communities top-level))]
+     (assoc unity :node-communities (community-map (:original unity))))))
+
+(defn community-similarity
+  [as bs]
+  (map
+   (fn [a]
+     (map
+      (fn [b]
+        (network/jaccard-similarity a b))
+      bs))
+   as))

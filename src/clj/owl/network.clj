@@ -31,6 +31,14 @@
    (partial map deref)
    (partial mapv #(future (f %)))))
 
+(defn sort-by-map
+  [m]
+  (fn [k]
+    (sort-by
+     (fn [e]
+       (get e m 0))
+     > k)))
+
 (defn total-connections
   [network]
   (reduce + 0 (map (comp count last) network)))
@@ -45,6 +53,16 @@
        (+ (-> node :in count)
           (-> node :out count))))
     network)))
+
+(defn network->edge-list
+  [network]
+  (mapcat
+   (fn [[id edges]]
+     (map
+      (fn [edge]
+        [id edge])
+      edges))
+   network))
 
 (defn pare-network
   [network]
