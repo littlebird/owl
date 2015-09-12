@@ -2,6 +2,18 @@
   (:require
    [clojure.set :as set]))
 
+(defn qartial
+  "(techno?) remix of partial:
+  > (defn f [a b c] {:a a :b b :c c})  ;;=> #'f
+  > (def p (partial f 1 2))            ;;=> #'p
+  > (def q (qartial f 2 3))            ;;=> #'q
+  > (p 3)                              ;;=> {:a 1 :b 2 :c 3}  
+  > (q 1)                              ;;=> {:a 1 :b 2 :c 3}"
+  [f & outer]
+  (fn
+    [& inner]
+    (apply f (concat inner outer))))
+
 (defn map-map
   [f m]
   (into
