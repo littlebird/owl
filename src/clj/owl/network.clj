@@ -14,14 +14,17 @@
     [& inner]
     (apply f (concat inner outer))))
 
+(defn mapify
+  "f needs to return a key value pair"
+  [f c]
+  (into {} (map f c)))
+
 (defn map-map
   [f m]
-  (into
-   {}
-   (map
-    (fn [[k v]]
-      (f k v))
-    m)))
+  (mapify
+   (fn [[k v]]
+     (f k v))
+   m))
 
 (defn map-keys
   [f m]
