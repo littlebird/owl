@@ -97,20 +97,20 @@
 
 (defn modularity-difference
   [{:keys [network ratio communities impact]} id community]
-  (p :modularity
-     (let [in-community (p :within (* 2.0 (weights-within network community)))
-           total-community (p :total (community-weight network community))
-           out-community (- total-community in-community)
-           relation (p :relation (node-relation network community id))
-           node-impact (get impact id)
-           ratio (* 0.5 ratio)
+  (let [in-community (weights-within network community)
+        total-community (community-weight network community)
+        out-community (- total-community in-community)
+        relation (node-relation network community id)
+        node-impact (get impact id)
+        ratio (* 0.5 ratio)
 
-           a (* (+ in-community relation) ratio)
-           b (* (+ out-community node-impact) ratio)
-           c (* in-community ratio)
-           d (* out-community ratio)
-           e (* node-impact ratio)]
-       (- (- a (* b b)) (- c (* d d) (* e e))))))
+        a (* (+ in-community (* 2.0 relation)) ratio)
+        b (* (+ out-community node-impact) ratio)
+        c (* in-community ratio)
+        d (* out-community ratio)
+        e (* node-impact ratio)
+        difference (- (- a (* b b)) (- c (* d d) (* e e)))]
+    difference))
 
 (defn node-connections
   [node]
@@ -130,7 +130,7 @@
            connections (node-connections node)
            potential (communities-for network connections)
            diffs (filter
-                  (comp (partial < 0) last)
+                  (comp (partial <= 0) last)
                   (map
                    (fn [community]
                      (let [members (get communities community)]
@@ -302,13 +302,25 @@
      (assoc communities node (:community weights)))
    {} network))
 
-(defn seek-unity
-  ([network] (seek-unity network (partial sort-by identity >)))
+(defn unify
+  ([network] (unify network (partial sort-by identity >)))
   ([network prioritize]
    (let [graph (prepare-network network)
          glom (agglomerate graph prioritize)
-         quest (drop-while (comp not unified?) glom)
-         unity (first quest)
+         quest (drop-while (comp not unified?) (rest glom))
+         unity (first quest)]
+     unity)))
+
+(defn seek-unity
+  ([network] (seek-unity network (partial sort-by identity >)))
+  ([network prioritize]
+   (let [top (unify network prioritize)
+         unity (loop [unity top]
+                 (if (and
+                      (< (count (:full-communities unity)) 3)
+                      (:sublevel (:sublevel unity)))
+                   (recur (:sublevel unity))
+                   unity))
          top-level (index-communities (:full-communities unity))
          unity (assoc unity :top-level-communities top-level)
          unity (update-in

@@ -72,6 +72,16 @@
        [target (vec (set/intersection within (set ids)))])
      network)))
 
+(defn invert-network
+  [network]
+  (reduce
+   (fn [all [id outs]]
+     (reduce
+      (fn [all out]
+        (update all out (fn [in] (conj (or in (set nil)) id))))
+      all outs))
+   {} network))
+
 (defn reflect-network
   [network]
   (reduce
@@ -118,5 +128,22 @@
         union (set/union a b)
         intersection (set/intersection a b)]
     (float (/ (count intersection) (count union)))))
+
+(defn spearmans-rho
+  [a b]
+  (let [common (set/intersection (set a) (set b))
+        indexes (into {} (map (fn [x i] [x i]) (filter common b) (range)))
+        total (count common)
+        sum (reduce
+             (fn [s [x i]]
+               (if-let [other (get indexes x)]
+                 (+ s (* (- i other) (- i other)))
+                 s))
+             0 (map vector (filter common a) (range)))]
+    (- 1.0 (/ (* 6.0 sum) (* total (dec (* total total)))))))
+
+;;; Valdis (list follower ratio): number of lists*10 divided by number of followers
+;;; Know the net, then knit the net, nudge the net, navigate the net, knead the net - Valdis Krebs
+
 
 [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
