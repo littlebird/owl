@@ -316,11 +316,17 @@
   ([network prioritize]
    (let [top (unify network prioritize)
          unity (loop [unity top]
-                 (if (and
-                      (< (count (:full-communities unity)) 3)
-                      (:sublevel (:sublevel unity)))
-                   (recur (:sublevel unity))
-                   unity))
+                 (let [sizes (map count (vals (:full-communities unity)))
+                       biggest (apply max sizes)
+                       total (reduce + 0 sizes)
+                       ratio (float (/ biggest total))]
+                   (if (and
+                        (or
+                         (< (count (:full-communities unity)) 3)
+                         (< 0.85 ratio))
+                        (:sublevel (:sublevel unity)))
+                     (recur (:sublevel unity))
+                     unity)))
          top-level (index-communities (:full-communities unity))
          unity (assoc unity :top-level-communities top-level)
          unity (update-in
