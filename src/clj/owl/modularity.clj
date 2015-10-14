@@ -317,7 +317,7 @@
    (let [top (unify network prioritize)
          unity (loop [unity top]
                  (let [sizes (map count (vals (:full-communities unity)))
-                       biggest (apply max sizes)
+                       biggest (if (empty? sizes) 0 (apply max sizes))
                        total (reduce + 0 sizes)
                        ratio (float (/ biggest total))]
                    (if (and
