@@ -312,7 +312,16 @@
      unity)))
 
 (defn seek-unity
-  ([network] (seek-unity network (partial sort-by identity >)))
+  ([network]
+   (seek-unity
+    network
+    (partial
+     sort-by
+     (fn [id]
+       (count (node-connections (get network id))))
+     >)))
+
+    ;; (partial sort-by identity >)
   ([network prioritize]
    (let [top (unify network prioritize)
          unity (loop [unity top]
