@@ -104,7 +104,7 @@
         node-impact (get impact id)
         ratio (* 0.5 ratio)
 
-        a (* (+ in-community (* 2.0 relation)) ratio)
+        a (* (+ in-community relation) ratio)
         b (* (+ out-community node-impact) ratio)
         c (* in-community ratio)
         d (* out-community ratio)
@@ -319,9 +319,7 @@
      sort-by
      (fn [id]
        (count (node-connections (get network id))))
-     >)))
-
-    ;; (partial sort-by identity >)
+     <)))
   ([network prioritize]
    (let [top (unify network prioritize)
          unity (loop [unity top]
