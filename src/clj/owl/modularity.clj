@@ -326,7 +326,7 @@
                  (let [sizes (map count (vals (:full-communities unity)))
                        biggest (if (empty? sizes) 0 (apply max sizes))
                        total (reduce + 0 sizes)
-                       ratio (float (/ biggest total))]
+                       ratio (if (zero? total) 0 (float (/ biggest total)))]
                    (if (and
                         (or
                          (< (count (:full-communities unity)) 3)
