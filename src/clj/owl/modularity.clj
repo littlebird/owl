@@ -102,7 +102,7 @@
         out-community (- total-community in-community)
         relation (node-relation network community id)
         node-impact (get impact id)
-        ratio (* 0.5 ratio)
+        ratio (* 0.4 ratio)
 
         a (* (+ in-community relation) ratio)
         b (* (+ out-community node-impact) ratio)
