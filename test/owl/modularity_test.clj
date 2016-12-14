@@ -20,36 +20,35 @@
           impact (owl/node-impact node)]
       (is (> impact 0.239)))))
 
-(deftest merge-communities-test
-  (testing "merge-communities"
-    (let [merged (owl/merge-communities graph)]
-      (is (>= (-> merged :communities count) 2))
-      (is (< (-> merged :communities count) (count pre-network))))))
+#_(deftest merge-communities-test
+    (testing "merge-communities"
+      (let [merged (owl/merge-communities graph)]
+        (is (>= (-> merged :communities count) 2))
+        (is (< (-> merged :communities count) (count pre-network))))))
 
-(deftest flow-test
-  (testing "flow-upwards"
-    (let [merged (owl/merge-communities graph)
-          network (:network merged)
-          community-id (-> merged :communities keys first)
-          community (-> merged :communities (get community-id))
-          connections (owl/merge-connections network community :out)]
-      (is
-       (empty?
-        (set/difference
-         (-> connections keys set)
-         (-> merged :communities keys set)))))))
+#_(deftest flow-test
+    (testing "flow-upwards"
+      (let [merged (owl/merge-communities graph)
+            network (:network merged)
+            community-id (-> merged :communities keys first)
+            community (-> merged :communities (get community-id))
+            connections (owl/merge-connections network community :out)]
+        (is
+         (empty?
+          (set/difference
+           (-> connections keys set)
+           (-> merged :communities keys set)))))))
 
-(deftest merge-nodes-test
-  (testing "merge-nodes"
-    (let [merged (owl/merge-communities graph)
-          network (:network merged)
-          community-id (-> merged :communities keys first)
-          community (-> merged :communities (get community-id))
-          node (owl/merge-nodes network community-id community)]
-      (is
-       (empty?
-        (set/difference
-         (-> node :out keys set)
-         (-> merged :communities keys set)))))))
-
+#_(deftest merge-nodes-test
+    (testing "merge-nodes"
+      (let [merged (owl/merge-communities graph)
+            network (:network merged)
+            community-id (-> merged :communities keys first)
+            community (-> merged :communities (get community-id))
+            node (owl/merge-nodes network community-id community)]
+        (is
+         (empty?
+          (set/difference
+           (-> node :out keys set)
+           (-> merged :communities keys set)))))))
 

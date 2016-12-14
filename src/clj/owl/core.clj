@@ -19,7 +19,7 @@
     (map
      (fn [[id node]]
        (assoc node
-         :identity id
-         :betweenness (get betweenness id)))
+              :identity id
+              :betweenness (get betweenness id)))
      unweighted)))
 

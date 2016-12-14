@@ -19,19 +19,19 @@
       (let [[left right] tree]
         (if (> (- total branch) branch)
           (make-mass (+ total probability) (+ branch probability) nil
-           [(add-event left novel probability) right])
+                     [(add-event left novel probability) right])
           (make-mass (+ total probability) branch nil
-           [left (add-event right novel probability)])))
+                     [left (add-event right novel probability)])))
       (make-mass (+ total probability) probability novel nil))))
 
 (defn sample
   ([mass] (sample mass (* (rand) (:total mass))))
   ([{:keys [total branch event tree] :as mass} point]
-     (if mass
-       (if event
-         event
-         (let [[left right] tree]
-           (if (< point branch)
-             (recur left point)
-             (recur right (- point branch))))))))
+   (if mass
+     (if event
+       event
+       (let [[left right] tree]
+         (if (< point branch)
+           (recur left point)
+           (recur right (- point branch))))))))
 

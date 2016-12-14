@@ -6,7 +6,7 @@
   :source-paths ["src/clj"]
   :javac-options ["-target" "1.7" "-source" "1.7"]
   :java-source-paths ["src/java"]
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
                  [com.taoensso/timbre "3.3.1"]
                  [org.clojure/math.combinatorics "0.1.1"]]
   :plugins [[s3-wagon-private "1.1.2"]]

@@ -1,10 +1,8 @@
 (ns owl.modularity
-  (:require
-   [clojure.set :as set]
-   [taoensso.timbre :as timbre]
-   [owl.network :as network]))
-
-(timbre/refer-timbre)
+  (:require [clojure.set :as set]
+            [taoensso.timbre :as timbre]
+            [owl.util :as util]
+            [owl.network :as network]))
 
 (defn node-impact
   [node]
@@ -20,22 +18,21 @@
 
 (defn sum-weights
   ([weights]
-     (reduce + 0 (map last weights)))
+   (reduce + 0 (map last weights)))
   ([weights ignoring?]
-     (reduce
-      (fn [sum [id weight]]
-        (if (ignoring? id)
-          (+ sum 0)
-          (+ sum weight)))
-      0 weights)))
+   (reduce
+    (fn [sum [id weight]]
+      (if (ignoring? id)
+        (+ sum 0)
+        (+ sum weight)))
+    0 weights)))
 
 (defn initial-communities
   [network]
   (into
    {}
    (map
-    (fn [id]
-      [id (set [id])])
+    (juxt identity hash-set)
     (keys network))))
 
 (defn prepare-network
@@ -55,7 +52,7 @@
      :total total
      :ratio (/ 1.0 total)
      :communities (initial-communities commune)
-     :impact (network/map-vals node-impact commune)}))
+     :impact (util/map-vals node-impact commune)}))
 
 (defn weights-within
   [network community]
@@ -103,7 +100,6 @@
         relation (node-relation network community id)
         node-impact (get impact id)
         ratio (* 0.4 ratio)
-
         a (* (+ in-community relation) ratio)
         b (* (+ out-community node-impact) ratio)
         c (* in-community ratio)
@@ -114,10 +110,9 @@
 
 (defn node-connections
   [node]
-  (p :connections
-     (set/union
-      (-> node :out keys set)
-      (-> node :in keys set))))
+  (set/union
+   (-> node :out keys set)
+   (-> node :in keys set)))
 
 (defn communities-for
   [network connections]
@@ -125,20 +120,19 @@
 
 (defn find-community
   [{:keys [network communities] :as graph} id]
-  (p :find-community
-     (let [node (get network id)
-           connections (node-connections node)
-           potential (communities-for network connections)
-           diffs (filter
-                  (comp (partial <= 0) last)
-                  (map
-                   (fn [community]
-                     (let [members (get communities community)]
-                       [community (modularity-difference graph id members)]))
-                   potential))]
-       (if (empty? connections)
-         id
-         (-> (sort-by last > diffs) first first)))))
+  (let [node (get network id)
+        connections (node-connections node)
+        potential (communities-for network connections)
+        diffs (filter
+               (comp (partial <= 0) last)
+               (map
+                (fn [community]
+                  (let [members (get communities community)]
+                    [community (modularity-difference graph id members)]))
+                potential))]
+    (if (empty? connections)
+      id
+      (-> (sort-by last > diffs) first first))))
 
 (defn community-for?
   [{:keys [network communities] :as graph} id]
@@ -157,7 +151,7 @@
          current-id (:community node)
          connections (prioritize (node-connections node))]
      (if (= 1 (count (get communities current-id)))
-       (if-let [connection 
+       (if-let [connection
                 (first
                  (drop-while
                   (fn [connection]
@@ -228,7 +222,7 @@
 (defn pool-communities
   [communities full-communities]
   (if full-communities
-    (network/map-map
+    (util/map-map
      (fn [id above]
        (let [below (map (partial get full-communities) above)]
          [id (apply set/union below)]))
@@ -248,7 +242,7 @@
      :total total
      :ratio (/ 1.0 total)
      :communities (initial-communities commune)
-     :impact (network/map-vals node-impact commune)
+     :impact (util/map-vals node-impact commune)
      :original (or original network)
      :full-communities (pool-communities communities full-communities)
      :sublevel (dissoc graph :original :total :ratio :impact)}))
