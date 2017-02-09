@@ -19,15 +19,15 @@
   (set (keys (get node direction))))
 
 (defn sum-weights
-  ([weights]
-     (reduce + 0 (map last weights)))
-  ([weights ignoring?]
+  ([weights
+     (reduce + 0 (map last weights))])
+  ([weights ignoring?
      (reduce
       (fn [sum [id weight]]
         (if (ignoring? id)
           (+ sum 0)
           (+ sum weight)))
-      0 weights)))
+      0 weights)]))
 
 (defn initial-communities
   [network]

@@ -27,11 +27,11 @@
 (defn sample
   ([mass] (sample mass (* (rand) (:total mass))))
   ([{:keys [total branch event tree] :as mass} point]
-     (if mass
-       (if event
-         event
-         (let [[left right] tree]
-           (if (< point branch)
-             (recur left point)
-             (recur right (- point branch))))))))
+   (if mass
+     (if event
+       event
+       (let [[left right] tree]
+         (if (< point branch)
+           (recur left point)
+           (recur right (- point branch))))))))
 
