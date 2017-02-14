@@ -20,8 +20,6 @@ public class Betweenness {
     }
 
     public Map calculate() {
-        String UUIDStr = UUID.randomUUID().toString();
-        System.out.println("Start Time: "+ UUIDStr+": " + System.currentTimeMillis());
         int size = this.graph.size();
         Map<Long, Double> betweenness = new HashMap<>(size);
 
@@ -87,7 +85,6 @@ public class Betweenness {
             });
 
         });
-        System.out.println("End Time: "+ UUIDStr+": " + System.currentTimeMillis());
         return betweenness;
 
 //
