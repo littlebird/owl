@@ -19,9 +19,9 @@
       (let [[left right] tree]
         (if (> (- total branch) branch)
           (make-mass (+ total probability) (+ branch probability) nil
-           [(add-event left novel probability) right])
+                     [(add-event left novel probability) right])
           (make-mass (+ total probability) branch nil
-           [left (add-event right novel probability)])))
+                     [left (add-event right novel probability)])))
       (make-mass (+ total probability) probability novel nil))))
 
 (defn sample
