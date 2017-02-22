@@ -2,7 +2,10 @@ package owl.algorithm;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
+/**
+ * Calculates the betweeness of a given graph
+ * This is basically Dijkstra's algorithm
+ */
 public class Betweenness {
 
     private Map<Long, Collection<Long>> graph;
@@ -19,7 +22,7 @@ public class Betweenness {
         return map.containsKey(key) ? map.get(key) : base.doubleValue();
     }
 
-    public Map calculate() {
+    public Map<?,?> calculate() {
         int size = this.graph.size();
         Map<Long, Double> betweenness = new HashMap<>(size);
 
@@ -56,7 +59,7 @@ public class Betweenness {
 
                     if (dependence.get(neighbor).equals(dependent)) {
                         Long _short = getLong(shortest, neighbor, 0) + getLong(shortest, visit, 0);
-                        shortest.put(neighbor,_short);
+                        shortest.put(neighbor, _short);
 
                         if (!paths.containsKey(neighbor)) {
                             paths.put(neighbor, new LinkedList<>());
@@ -70,13 +73,13 @@ public class Betweenness {
             stack.forEach(last -> {
                 if (paths.containsKey(last)) {
                     paths.get(last).forEach(step -> {
-                        Double ratio = getLong(shortest,step,0).doubleValue() / shortest.get(last).doubleValue();
-                        Double scale = getDouble(distance,last,0) + 1.0 ;
-                        Double dist = getDouble(distance,step,0)+ ratio * scale;
-                        distance.put(step,dist);
+                        Double ratio = getLong(shortest, step, 0).doubleValue() / shortest.get(last).doubleValue();
+                        Double scale = getDouble(distance, last, 0) + 1.0;
+                        Double dist = getDouble(distance, step, 0) + ratio * scale;
+                        distance.put(step, dist);
 
-                        if(!last.equals(node)){
-                            Double between = getDouble(betweenness,last,0) + getDouble(distance,last,0);
+                        if (!last.equals(node)) {
+                            Double between = getDouble(betweenness, last, 0) + getDouble(distance, last, 0);
 
                             betweenness.put(last, between);
                         }
@@ -86,7 +89,7 @@ public class Betweenness {
 
         });
         return betweenness;
-
+    }
 //
 //    for (Iterator keys = this.graph.keySet().iterator(); keys.hasNext();) {
 //      Long node = (Long) keys.next();
@@ -139,9 +142,5 @@ public class Betweenness {
 //        }
 //      }
 //    }
-
 //    return betweenness;
-    }
 }
-
-
