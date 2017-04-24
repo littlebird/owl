@@ -1,4 +1,4 @@
-(defproject aviary/owl "0.0.22"
+(defproject aviary/owl "0.0.23"
   :description "Graph analysis in Clojure"
   :url "http://github.com/littlebird/owl"
   :license {:name "Eclipse Public License"
@@ -7,8 +7,8 @@
   :javac-options ["-target" "1.8" "-source" "1.8"]
   :java-source-paths ["src/java"]
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [com.taoensso/timbre "4.8.0"]
-                 [org.clojure/math.combinatorics "0.1.1"]]
+                 [com.taoensso/timbre "4.10.0"]
+                 [org.clojure/math.combinatorics "0.1.4"]]
   :plugins [[s3-wagon-private "1.1.2"]]
   :repositories [["private" {:url "s3p://littlebird-maven/releases/"
                              :creds :gpg
