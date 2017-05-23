@@ -1,7 +1,10 @@
 package owl.algorithm;
 
+
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+
 /**
  * Calculates the betweeness of a given graph
  * This is basically Dijkstra's algorithm
@@ -14,52 +17,56 @@ public class Betweenness {
         this.graph = graph;
     }
 
-    private Long getLong(Map<Long,Long> map, Long key, Integer base) {
+    private Long getLong(Map<Long, Long> map, Long key, Integer base) {
         return map.containsKey(key) ? map.get(key) : base.longValue();
     }
 
-    private Double getDouble(Map<Long,Double> map, Long key, Integer base) {
+    private Double getDouble(Map<Long, Double> map, Long key, Integer base) {
         return map.containsKey(key) ? map.get(key) : base.doubleValue();
     }
 
-    public Map<?,?> calculate() {
+    public Map<?, ?> calculate() {
         int size = this.graph.size();
         Map<Long, Double> betweenness = new HashMap<>(size);
 
+
         Stack<Long> stack = new Stack<>();
         Map<Long, Collection<Long>> paths = new HashMap<>();
-        Map<Long, Long> shortest = new HashMap<>();
-        Map<Long, Long> dependence = new HashMap<>();
-        Map<Long, Double> distance = new HashMap<>();
+        Map<Long, Long> shortests = new HashMap<>();
+        Map<Long, Long> dependences = new HashMap<>();
+        Map<Long, Double> distances = new HashMap<>();
         Queue<Long> queue = new ConcurrentLinkedQueue<>();
 
         graph.forEach((node, numbers) -> {
+
             stack.empty();
             paths.clear();
-            shortest.clear();
-            dependence.clear();
-            distance.clear();
+            shortests.clear();
+            dependences.clear();
+            distances.clear();
             queue.clear();
 
-            shortest.put(node, 1L);
-            dependence.put(node, 0L);
+            shortests.put(node, 1L);
+            dependences.put(node, 0L);
             queue.offer(node);
 
-            queue.forEach(visit -> {
+            while(!queue.isEmpty())
+            {
+                Long visit = queue.poll();
                 stack.push(visit);
-                Collection<Long> graphValues = graph.get(visit);
-                graphValues.forEach((neighbor) -> {
+                Collection<Long> neighbors = graph.get(visit);
+                neighbors.forEach((neighbor) -> {
 
-                    Long dependent = getLong(dependence, visit, -1) + 1;
+                    Long dependent = getLong(dependences, visit, -1) + 1;
 
-                    if (!dependence.containsKey(neighbor)) {
+                    if (!dependences.containsKey(neighbor)) {
                         queue.offer(neighbor);
-                        dependence.put(neighbor, dependent);
+                        dependences.put(neighbor, dependent);
                     }
 
-                    if (dependence.get(neighbor).equals(dependent)) {
-                        Long _short = getLong(shortest, neighbor, 0) + getLong(shortest, visit, 0);
-                        shortest.put(neighbor, _short);
+                    if (dependences.get(neighbor).equals(dependent)) {
+                        Long _short = getLong(shortests, neighbor, 0) + getLong(shortests, visit, 0);
+                        shortests.put(neighbor, _short);
 
                         if (!paths.containsKey(neighbor)) {
                             paths.put(neighbor, new LinkedList<>());
@@ -68,26 +75,26 @@ public class Betweenness {
                     }
                 });
 
-            });
+            }
 
             stack.forEach(last -> {
                 if (paths.containsKey(last)) {
                     paths.get(last).forEach(step -> {
-                        Double ratio = getLong(shortest, step, 0).doubleValue() / shortest.get(last).doubleValue();
-                        Double scale = getDouble(distance, last, 0) + 1.0;
-                        Double dist = getDouble(distance, step, 0) + ratio * scale;
-                        distance.put(step, dist);
-
+                        Double ratio = getLong(shortests, step, 0).doubleValue() / shortests.get(last).doubleValue();
+                        Double scale = getDouble(distances, last, 0) + 1.0;
+                        Double distance = getDouble(distances, step, 0) + ratio * scale;
+                        distances.put(step, distance);
                         if (!last.equals(node)) {
-                            Double between = getDouble(betweenness, last, 0) + getDouble(distance, last, 0);
 
-                            betweenness.put(last, between);
+                            Double between = getDouble(betweenness, last, 0);
+                            Double dist = getDouble(distances, last, 0);
+                            betweenness.put(last, between + dist);
                         }
                     });
                 }
             });
-
         });
+
         return betweenness;
     }
 //
