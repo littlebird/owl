@@ -50,7 +50,7 @@
         total (network/total-weights commune)]
     {:network commune
      :total total
-     :ratio (/ 1.0 total)
+     :ratio (/ total 8)
      :communities (initial-communities commune)
      :impact (util/map-vals node-impact commune)}))
 
