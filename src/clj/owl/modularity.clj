@@ -305,6 +305,20 @@
          unity (first quest)]
      unity)))
 
+(defn limit-communities
+  [unity]
+  (let [communities (:communities unity)
+        full (:full-communities unity)
+        [good bad] ((juxt filter remove) #(< 10 (val %)) (into {} (map (fn [[k v]] {k (count v)}) full)))
+        _ (timbre/debug (str "Trimming communities: " (pr-str bad)))
+        ids (keys bad)
+        fiction-key (first ids)
+        remain (rest ids)
+        fiction-community (apply set/union (vals (select-keys full ids)))
+        trim-community (apply dissoc communities remain)
+        trim-full (apply dissoc full ids)]
+    (assoc unity :communities trim-community :full-communities (merge trim-full {fiction-key fiction-community}))))
+
 (defn seek-unity
   ([network]
    (seek-unity
@@ -316,7 +330,8 @@
      <)))
   ([network prioritize]
    (let [top (unify network prioritize)
-         unity (loop [unity top]
+         com-limit (limit-communities top)
+         unity (loop [unity com-limit]
                  (let [sizes (map count (vals (:full-communities unity)))
                        biggest (if (empty? sizes) 0 (apply max sizes))
                        total (reduce + 0 sizes)
