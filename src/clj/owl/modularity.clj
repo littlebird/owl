@@ -316,8 +316,9 @@
         remain (rest ids)
         fiction-community (apply set/union (vals (select-keys full ids)))
         trim-community (apply dissoc communities remain)
-        trim-full (apply dissoc full ids)]
-    (assoc unity :communities trim-community :full-communities (merge trim-full {fiction-key fiction-community}))))
+        trim-full (apply dissoc full ids)
+        fiction (when ids {fiction-key fiction-community})]
+    (assoc unity :communities trim-community :full-communities (merge trim-full fiction))))
 
 (defn seek-unity
   ([network]
