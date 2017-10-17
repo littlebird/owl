@@ -310,14 +310,15 @@
   (let [communities (:communities unity)
         full (:full-communities unity)
         [good bad] ((juxt filter remove) #(< 10 (val %)) (into {} (map (fn [[k v]] {k (count v)}) full)))
-        _ (timbre/debug (str "Trimming communities: " (pr-str bad)))
-        ids (keys bad)
+        _ (timbre/debug (str "Trimming small communities: " (pr-str bad)))
+        other-bad (map first (drop 11 (sort-by second > good)))
+        ids (concat (map first bad) other-bad)
         fiction-key (first ids)
         remain (rest ids)
         fiction-community (apply set/union (vals (select-keys full ids)))
         trim-community (apply dissoc communities remain)
         trim-full (apply dissoc full ids)
-        fiction (when ids {fiction-key fiction-community})]
+        fiction (when-not (empty? ids) {fiction-key fiction-community})]
     (assoc unity :communities trim-community :full-communities (merge trim-full fiction))))
 
 (defn seek-unity
@@ -331,8 +332,7 @@
      <)))
   ([network prioritize]
    (let [top (unify network prioritize)
-         com-limit (limit-communities top)
-         unity (loop [unity com-limit]
+         unity (loop [unity top]
                  (let [sizes (map count (vals (:full-communities unity)))
                        biggest (if (empty? sizes) 0 (apply max sizes))
                        total (reduce + 0 sizes)
@@ -344,6 +344,7 @@
                         (:sublevel (:sublevel unity)))
                      (recur (:sublevel unity))
                      unity)))
+         unity (limit-communities unity)
          top-level (index-communities (:full-communities unity))
          unity (assoc unity :top-level-communities top-level)
          unity (update-in
